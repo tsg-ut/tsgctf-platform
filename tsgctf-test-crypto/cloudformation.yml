@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  ECSTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        - Essential: true
+          Image: 945534687854.dkr.ecr.ap-northeast-1.amazonaws.com/tsgctf-test-crypto:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/tsgctf-test
+              awslogs-region: ap-northeast-1
+              awslogs-stream-prefix: ecs
+          Name: tsgctf-test-crypto
+          PortMappings:
+            - ContainerPort: 65434
+              HostPort: 65434
+              Protocol: tcp
+          Environment:
+            - Name: FLAG
+              Value: TSGCTF{YOU_ARE_PERFECT_AND_ULTIMATE_HACKER}
+            - Name: CTF_PORT
+              Value: '65434'
+            - Name: TCPDUMP_ENABLE
+              Value: 'true'
+      Cpu: 256
+      ExecutionRoleArn: 'arn:aws:iam::945534687854:role/ecsTaskExecutionRole'
+      Family: tsgctf-test-crypto
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      ServiceName: tsgctf-test-crypto-service
+      Cluster: tsgctf-test
+      DesiredCount: 1
+      CapacityProviderStrategy:
+        - Base: 0
+          Weight: 1
+          CapacityProvider: FARGATE_SPOT
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - sg-3b66cb5f
+          Subnets:
+            - subnet-681e4b31
+            - subnet-e686fdce
+            - subnet-f4003d83
+      TaskDefinition: !Ref ECSTaskDefinition
