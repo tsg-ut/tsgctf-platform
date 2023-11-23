@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+  <title>TSG CTF Platform PoC</title>
+</head>
+<body>
+  <h1>TSG CTF Platform PoC</h1>
+  <h2>The Hardest Calc (Crypto 100pts)</h2>
+  <p><a href="https://github.com/tsg-ut/tsgctf-platform/blob/main/tsgctf-test-crypto/src.rb" target="_blank">Source Code</a></p>
+  <p><button type="button" id="launch">Launch Server</button> <small>*The server will automatically shut down 5 minutes after startup.</small></p>
+  <p id="message"></p>
+  <p><code id="connection-info"></code> <span id="remaining"></span></p>
+  <hr>
+  <input type="text" id="flag" placeholder="TSGCTF{...}">
+  <button type="button" id="submit">Submit</button>
+  <p id="result"></p>
+
+  <script defer>
+    const launchButtonEl = document.getElementById('launch');
+    const messageEl = document.getElementById('message');
+    const connectionInfoEl = document.getElementById('connection-info');
+    const flagEl = document.getElementById('flag');
+    const submitButtonEl = document.getElementById('submit');
+    const resultEl = document.getElementById('result');
+    const remainingEl = document.getElementById('remaining');
+
+    const api = async (endpoint, data = {}) => {
+      const res = await fetch(`/api${endpoint}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const json = await res.json();
+      return json;
+    };
+
+    const log = (message) => {
+      messageEl.textContent = message;
+    };
+
+    launchButtonEl.addEventListener('click', async () => {
+      launchButtonEl.disabled = true;
+
+      log('Requesting for server...');
+      const launchData = await api('/challenges/launch');
+      const taskArn = launchData.taskArn;
+
+      log(`Launching server... (arn = ${taskArn})`);
+      for (const i of Array(20).keys()) {
+        const pollData = await api('/challenges/poll', {taskArn});
+        if (pollData.status === 'ready') {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      log('Getting connection info...');
+
+      const accessInfoData = await api('/challenges/getAccessInfo', {taskArn});
+      const ipAddress = accessInfoData.publicIps[0];
+
+      log('Server is ready!');
+      connectionInfoEl.textContent = `nc ${ipAddress} 65434`;
+
+      let remaining = 5 * 60;
+
+      const timer = setInterval(() => {
+        remaining -= 1;
+        remainingEl.textContent = `(remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')})`;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          launchButtonEl.disabled = false;
+          log('Server is down.');
+        }
+      }, 1000);
+    });
+
+    submitButtonEl.addEventListener('click', async () => {
+      const flag = flagEl.value;
+      if (flag === 'TSGCTF{YOU_ARE_PERFECT_AND_ULTIMATE_HACKER}') {
+        resultEl.textContent = 'Correct!';
+      } else {
+        resultEl.textContent = 'Huh?';
+      }
+    });
+  </script>
+</body>
+</html>

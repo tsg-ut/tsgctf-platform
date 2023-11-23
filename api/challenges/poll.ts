@@ -49,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	} catch (e) {
 		if (e.name === 'TimeoutError') {
 			res.status(202).json({
-				message: 'provisioning',
+				status: 'provisioning',
 			});
 			return;
 		}
@@ -83,6 +83,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	});
 
 	res.status(200).json({
-		message: 'ready',
+		status: 'ready',
 	});
 }
