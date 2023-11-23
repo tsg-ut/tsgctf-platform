@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "tsgctf-platform"
+version = "0.1.0"
+description = ""
+authors = ["Koki Takahashi <hakatasiloving@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "tsgctf_platform"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyyaml = "^6.0.1"
+ecs-composex = "^0.24.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
