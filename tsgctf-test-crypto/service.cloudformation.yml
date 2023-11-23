@@ -2,8 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Outputs:
   ECSServiceArn:
     Value: !Ref ECSService
-  ECSServiceAddress:
-    Value: !GetAtt ECSService.LoadBalancerDNSName
 Resources:
   ECSService:
     Type: 'AWS::ECS::Service'
