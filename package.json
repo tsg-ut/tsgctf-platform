@@ -4,12 +4,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.2",
+    "vercel": "^32.5.6"
   },
   "dependencies": {
     "@vercel/node": "^3.0.11"

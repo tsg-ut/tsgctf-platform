@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ESNext"
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "skipLibCheck": true
   }
 }
