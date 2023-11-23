@@ -6,6 +6,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "vercel dev"
   },
   "keywords": [],
