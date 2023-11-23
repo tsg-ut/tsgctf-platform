@@ -67,11 +67,11 @@
       log('Server is ready!');
       connectionInfoEl.textContent = `nc ${ipAddress} 65434`;
 
-      let remaining = 5 * 60;
+      const expectedEndTime = Date.now() + 5 * 60 * 1000;
 
       const timer = setInterval(() => {
-        remaining -= 1;
-        remainingEl.textContent = `(remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')})`;
+        const remaining = Math.max(0, expectedEndTime - Date.now()) / 1000;
+        remainingEl.textContent = `(remaining: ${Math.floor(remaining / 60)}:${String(Math.floor(remaining) % 60).padStart(2, '0')})`;
         if (remaining <= 0) {
           clearInterval(timer);
           launchButtonEl.disabled = false;
