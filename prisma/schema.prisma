@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+enum Status {
+  CREATED
+  RUNNING
+  STOPPED
+}
+
+model EcsTask {
+  taskArn             String    @id
+  taskDefinitionArn   String
+  cpu                 String
+  memory              String
+  status              Status
+  taskCreatedAt       DateTime
+  taskStartedAt       DateTime?
+  taskStoppedAt       DateTime?
+  publicIpAddresses   String[]
+  networkInterfaceIds String[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  extData             Json?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model counters {
+  count Int?
+
+  @@ignore
+}
