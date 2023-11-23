@@ -1,7 +1,7 @@
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 import type {DescribeTasksCommandInput} from '@aws-sdk/client-ecs';
 import type {WaiterConfiguration, WaiterResult} from "@smithy/util-waiter";
-import {DescribeTasksCommand, ECSClient, waitUntilTasksRunning} from '@aws-sdk/client-ecs';
+import {ECSClient, waitUntilTasksRunning} from '@aws-sdk/client-ecs';
 import {PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -23,26 +23,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 		return;
 	}
 
-	const ecsTask = await prisma.ecsTask.findUnique({
-		where: {
-			taskArn: taskArn,
-		},
-	});
-
-	if (ecsTask === null) {
-		res.status(404).json({
-			error: 'Not Found',
-		});
-		return;
-	}
-
-	if (ecsTask.status !== 'CREATED') {
-		res.status(200).json({
-			status: 'ready',
-		});
-		return;
-	}
-
 	const ecs = new ECSClient({
 		region: 'ap-northeast-1',
 		credentials: {
@@ -57,40 +37,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 		minDelay: 3,
 	};
 
-	const describeTasksParams: DescribeTasksCommandInput = {
+	const waitUntilTasksRunningParams: DescribeTasksCommandInput = {
 		cluster: 'tsgctf-test',
 		tasks: [taskArn],
 	};
 
-	const describeTasksResult = await ecs.send(new DescribeTasksCommand(describeTasksParams));
-
-	if (describeTasksResult.tasks?.length !== 1) {
-		throw new Error(`Task not found: ${taskArn}`);
+	let waitResult: WaiterResult;
+	try {
+		waitResult = await waitUntilTasksRunning(waiterParams, waitUntilTasksRunningParams);
+	} catch (e) {
+		if (e.name === 'TimeoutError') {
+			res.status(202).json({
+				status: 'provisioning',
+			});
+			return;
+		}
+		throw e;
 	}
 
-	let taskData = describeTasksResult.tasks[0];
+	const taskData = waitResult.reason.tasks?.find((taskData) => (
+		taskData.taskArn === taskArn
+	));
 
-	if (taskData.lastStatus !== 'RUNNING') {
-		let waitResult: WaiterResult;
-		try {
-			waitResult = await waitUntilTasksRunning(waiterParams, describeTasksParams);
-		} catch (e) {
-			if (e.name === 'TimeoutError') {
-				res.status(202).json({
-					status: 'provisioning',
-				});
-				return;
-			}
-			throw e;
-		}
-
-		taskData = waitResult.reason.tasks?.find((taskDatum) => (
-			taskDatum.taskArn === taskArn
-		));
-
-		if (!taskData) {
-			throw new Error(`Task not found: ${taskArn}`);
-		}
+	if (!taskData) {
+		throw new Error(`Task not found: ${taskArn}`);
 	}
 
 	const networkInterfaceIds: string[] =
