@@ -1,5 +1,5 @@
 import type {VercelRequest, VercelResponse} from '@vercel/node';
-import type {DescribeTasksCommandInput} from '@aws-sdk/client-ecs';
+import type {DescribeTasksCommandInput, Task} from '@aws-sdk/client-ecs';
 import type {WaiterConfiguration, WaiterResult} from "@smithy/util-waiter";
 import {ECSClient, waitUntilTasksRunning} from '@aws-sdk/client-ecs';
 import {PrismaClient} from '@prisma/client';
@@ -19,6 +19,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	if (typeof taskArn !== 'string' || taskArn.length === 0) {
 		res.status(400).json({
 			error: 'Bad Request',
+		});
+		return;
+	}
+
+	const ecsTask = await prisma.ecsTask.findUnique({
+		where: {
+			taskArn: taskArn,
+		},
+	});
+
+	if (ecsTask === null) {
+		res.status(404).json({
+			error: 'Not Found',
+		});
+		return;
+	}
+
+	if (ecsTask.status !== 'CREATED') {
+		res.status(200).json({
+			status: 'ready',
 		});
 		return;
 	}
@@ -55,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 		throw e;
 	}
 
-	const taskData = waitResult.reason.tasks?.find((taskData) => (
+	const taskData: Task = waitResult.reason.tasks?.find((taskData) => (
 		taskData.taskArn === taskArn
 	));
 
