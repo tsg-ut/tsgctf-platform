@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: 2010-09-09
+Outputs:
+  ECSServiceArn:
+    Value: !Ref ECSService
+  ECSServiceAddress:
+    Value: !GetAtt ECSService.LoadBalancerDNSName
+Resources:
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      ServiceName: tsgctf-test-crypto-service
+      Cluster: tsgctf-test
+      DesiredCount: 1
+      CapacityProviderStrategy:
+        - Base: 0
+          Weight: 1
+          CapacityProvider: FARGATE_SPOT
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - sg-3b66cb5f
+          Subnets:
+            - subnet-681e4b31
+            - subnet-e686fdce
+            - subnet-f4003d83
+      TaskDefinition: tsgctf-test-crypto
