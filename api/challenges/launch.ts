@@ -45,26 +45,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	const runTaskCommand = new RunTaskCommand(runTaskParams);
 
 	const runTaskResult = await ecs.send(runTaskCommand);
-	const taskArn: string[] = [];
 
-	for (const task of runTaskResult.tasks) {
-		taskArn.push(task.taskArn);
-		await prisma.ecsTask.create({
-			data: {
-				taskArn: task.taskArn,
-				taskDefinitionArn: task.taskDefinitionArn,
-				cpu: task.cpu,
-				memory: task.memory,
-				status: 'CREATED',
-				taskCreatedAt: task.createdAt,
-				publicIpAddresses: [],
-				networkInterfaceIds: [],
-				extData: {
-					runTaskResult: JSON.parse(JSON.stringify(runTaskResult)),
-				},
-			}
+	if (runTaskResult.tasks.length !== 1) {
+		res.status(500).json({
+			error: 'Internal Server Error',
 		});
+		return;
 	}
 
-	res.status(200).json({taskArn});
+	const [task] = runTaskResult.tasks;
+
+	await prisma.ecsTask.create({
+		data: {
+			taskArn: task.taskArn,
+			taskDefinitionArn: task.taskDefinitionArn,
+			cpu: task.cpu,
+			memory: task.memory,
+			status: 'CREATED',
+			taskCreatedAt: task.createdAt,
+			durationLimit: 300,
+			publicIpAddresses: [],
+			networkInterfaceIds: [],
+			extData: {
+				runTaskResult: JSON.parse(JSON.stringify(runTaskResult)),
+			},
+		}
+	});
+
+	res.status(200).json({taskArn: task.taskArn});
 }

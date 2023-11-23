@@ -23,6 +23,7 @@ model EcsTask {
   taskCreatedAt       DateTime
   taskStartedAt       DateTime?
   taskStoppedAt       DateTime?
+  durationLimit       Int
   publicIpAddresses   String[]
   networkInterfaceIds String[]
   createdAt           DateTime  @default(now())

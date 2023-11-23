@@ -11,6 +11,7 @@ CREATE TABLE "EcsTask" (
     "taskCreatedAt" TIMESTAMP(3) NOT NULL,
     "taskStartedAt" TIMESTAMP(3),
     "taskStoppedAt" TIMESTAMP(3),
+    "durationLimit" INTEGER NOT NULL,
     "publicIpAddresses" TEXT[],
     "networkInterfaceIds" TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
