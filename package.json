@@ -1,0 +1,17 @@
+{
+  "name": "tsgctf-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "@vercel/node": "^3.0.11"
+  }
+}
